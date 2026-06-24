@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UPHSD Research Capsule Writer</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #8b0000;
+    }
+
+    .note {
+      background: #fff3cd;
+      padding: 12px;
+      border-left: 5px solid #ffc107;
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 12px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .section {
+      border: 1px solid #ddd;
+      padding: 18px;
+      margin-top: 20px;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .counter {
+      margin-top: 5px;
+      font-size: 13px;
+      color: #8b0000;
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    button {
+      background: #8b0000;
+      color: white;
+      border: none;
+      padding: 11px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #a50000;
+    }
+
+    .secondary {
+      background: #444;
+    }
+
+    .danger {
+      background: #b30000;
+    }
+
+    .green {
+      background: #1f7a3f;
+    }
+
+    .totalBox {
+      background: #e8f5e9;
+      border: 1px solid #b7dfb9;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .reference-group {
+      margin-top: 10px;
+    }
+
+    @media print {
+      button, .buttons, .note {
+        display: none;
+      }
+      body {
+        background: white;
+      }
+      .container {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>UPHSD Research Capsule Writer</h1>
+    <h2>Research Concept Paper Drafting Tool</h2>
+
+    <div class="note">
+      Format guide: 1,200–1,500 words total, 3–5 references only, APA 7th edition, references from 2021–2025.
+    </div>
+
+    <div class="totalBox">
+      Total Word Count: <span id="totalWords">0</span> / 1,200–1,500 words
+    </div>
+
+    <div class="buttons">
+      <button onclick="saveDraft()">Save Draft</button>
+      <button onclick="loadDraft()" class="secondary">Load Draft</button>
+      <button onclick="exportJSON()" class="green">Export JSON</button>
+      <button onclick="importJSON()" class="secondary">Import JSON</button>
+      <button onclick="exportPDF()">Export PDF</button>
+      <button onclick="window.print()">Print</button>
+      <button onclick="clearAll()" class="danger">Clear All</button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+    <div class="section">
+      <h3>Student Information</h3>
+      <label>Student Name</label>
+      <input id="studentName">
+
+      <label>Student Number</label>
+      <input id="studentNumber">
+
+      <label>Degree / Major</label>
+      <input id="degreeMajor" placeholder="Example: Master of Arts in Education major in Special Education">
+    </div>
+
+    <div class="section">
+      <h3>1. Proposed Title</h3>
+      <p class="small">Not more than 25 words.</p>
+      <textarea id="titleText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="titleTextCount">0</span> / 25</div>
+    </div>
+
+    <div class="section">
+      <h3>2. Introduction and Background</h3>
+      <p class="small">200–300 words. Include problem, rationale, significance, SDGs, AmBisyon 2040, CHED/DepEd/DOST/NRCP/EDCOM II, and UPHSD research agenda.</p>
+      <textarea id="introText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="introTextCount">0</span> / 200–300</div>
+    </div>
+
+    <div class="section">
+      <h3>3. Statement of the Problem</h3>
+      <p class="small">100–150 words. State the central question and sub-questions.</p>
+      <textarea id="problemText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="problemTextCount">0</span> / 100–150</div>
+    </div>
+
+    <div class="section">
+      <h3>4. Objectives of the Study</h3>
+      <p class="small">50–100 words. Include general and specific objectives.</p>
+      <textarea id="objectivesText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="objectivesTextCount">0</span> / 50–100</div>
+    </div>
+
+    <div class="section">
+      <h3>5. Scope and Delimitation</h3>
+      <p class="small">100–150 words. Clarify coverage, context, population, and limitations.</p>
+      <textarea id="scopeText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="scopeTextCount">0</span> / 100–150</div>
+    </div>
+
+    <div class="section">
+      <h3>6. Capsule Review of Related Studies</h3>
+      <p class="small">200–300 words. Synthesize 3–5 recent studies from 2021–2025 and identify the research gap.</p>
+      <textarea id="rrlText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="rrlTextCount">0</span> / 200–300</div>
+    </div>
+
+    <div class="section">
+      <h3>7. Theoretical / Conceptual Framework</h3>
+      <p class="small">150–200 words. Present theory or conceptual model. Mention diagram if applicable.</p>
+      <textarea id="frameworkText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="frameworkTextCount">0</span> / 150–200</div>
+    </div>
+
+    <div class="section">
+      <h3>8. Methodology</h3>
+      <p class="small">250–350 words. Include design, participants, data collection, AI-assisted tools disclosure, and analysis plan.</p>
+
+      <label>Research Design</label>
+      <select id="researchDesign">
+        <option value="">Select research design</option>
+        <option>Quantitative Research</option>
+        <option>Qualitative Research</option>
+        <option>Mixed Methods</option>
+        <option>Descriptive Research</option>
+        <option>Case Study</option>
+        <option>Phenomenology</option>
+        <option>Action Research</option>
+        <option>Other</option>
+      </select>
+
+      <label>Methodology Draft</label>
+      <textarea id="methodologyText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="methodologyTextCount">0</span> / 250–350</div>
+    </div>
+
+    <div class="section">
+      <h3>9. Ethical and AI Considerations</h3>
+      <p class="small">100–150 words. Address RA 10173, PHREB, confidentiality, consent, and AI disclosure.</p>
+      <textarea id="ethicsText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="ethicsTextCount">0</span> / 100–150</div>
+
+      <button onclick="insertAIDisclosure()" class="secondary">Insert AI Disclosure Sample</button>
+    </div>
+
+    <div class="section">
+      <h3>10. Expected Outputs and Contribution</h3>
+      <p class="small">100–150 words. Include knowledge, policy, community, institutional contribution, and dissemination.</p>
+      <textarea id="outputText" oninput="updateCounts()"></textarea>
+      <div class="counter">Words: <span id="outputTextCount">0</span> / 100–150</div>
+    </div>
+
+    <div class="section">
+      <h3>11. References</h3>
+      <p class="small">Provide 3–5 references only. APA 7th edition. Published from 2021–2025.</p>
+
+      <div class="reference-group">
+        <label>Reference 1</label>
+        <textarea id="ref1" oninput="updateCounts()"></textarea>
+      </div>
+
+      <div class="reference-group">
+        <label>Reference 2</label>
+        <textarea id="ref2" oninput="updateCounts()"></textarea>
+      </div>
+
+      <div class="reference-group">
+        <label>Reference 3</label>
+        <textarea id="ref3" oninput="updateCounts()"></textarea>
+      </div>
+
+      <div class="reference-group">
+        <label>Reference 4</label>
+        <textarea id="ref4" oninput="updateCounts()"></textarea>
+      </div>
+
+      <div class="reference-group">
+        <label>Reference 5</label>
+        <textarea id="ref5" oninput="updateCounts()"></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>12. Preferred Research Adviser</h3>
+      <label>Suggested Adviser 1</label>
+      <input id="adviser1">
+
+      <label>Reason / Area of Expertise Alignment</label>
+      <textarea id="adviserReason1"></textarea>
+
+      <label>Suggested Adviser 2</label>
+      <input id="adviser2">
+
+      <label>Reason / Area of Expertise Alignment</label>
+      <textarea id="adviserReason2"></textarea>
+    </div>
+  </div>
+
+  <script>
+    const textFields = [
+      "titleText", "introText", "problemText", "objectivesText",
+      "scopeText", "rrlText", "frameworkText", "methodologyText",
+      "ethicsText", "outputText"
+    ];
+
+    const allFields = [
+      "studentName", "studentNumber", "degreeMajor", "researchDesign",
+      ...textFields,
+      "ref1", "ref2", "ref3", "ref4", "ref5",
+      "adviser1", "adviserReason1", "adviser2", "adviserReason2"
+    ];
+
+    function countWords(text) {
+      return text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+    }
+
+    function updateCounts() {
+      let total = 0;
+
+      textFields.forEach(id => {
+        const words = countWords(document.getElementById(id).value);
+        document.getElementById(id + "Count").textContent = words;
+        total += words;
+      });
+
+      document.getElementById("totalWords").textContent = total;
+    }
+
+    function collectData() {
+      const data = {};
+      allFields.forEach(id => {
+        data[id] = document.getElementById(id).value;
+      });
+      return data;
+    }
+
+    function fillData(data) {
+      allFields.forEach(id => {
+        if (data[id] !== undefined) {
+          document.getElementById(id).value = data[id];
+        }
+      });
+      updateCounts();
+    }
+
+    function saveDraft() {
+      localStorage.setItem("uphsdResearchCapsule", JSON.stringify(collectData()));
+      alert("Draft saved successfully!");
+    }
+
+    function loadDraft() {
+      const data = localStorage.getItem("uphsdResearchCapsule");
+      if (!data) {
+        alert("No saved draft found.");
+        return;
+      }
+      fillData(JSON.parse(data));
+      alert("Draft loaded successfully!");
+    }
+
+    function clearAll() {
+      if (!confirm("Are you sure you want to clear everything?")) return;
+      allFields.forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      updateCounts();
+    }
+
+    function exportJSON() {
+      const data = collectData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "uphsd-research-capsule-draft.json";
+      link.click();
+    }
+
+    function importJSON() {
+      document.getElementById("importFile").click();
+    }
+
+    function handleImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        fillData(data);
+        alert("JSON draft imported successfully!");
+      };
+      reader.readAsText(file);
+    }
+
+    function insertAIDisclosure() {
+      const sample = "The researcher may use AI-assisted tools for grammar checking, organization of ideas, and improvement of clarity. However, all research decisions, data interpretation, analysis, and final written outputs remain the responsibility of the researcher. Any use of AI tools will be disclosed transparently and will not replace original academic work, ethical judgment, or proper citation of sources.";
+      document.getElementById("ethicsText").value += "\n\n" + sample;
+      updateCounts();
+    }
+
+    function addTextToPDF(doc, title, text, y) {
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
+      doc.text(title, 15, y);
+      y += 7;
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(11);
+
+      const lines = doc.splitTextToSize(text || "No response provided.", 180);
+
+      lines.forEach(line => {
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(line, 15, y);
+        y += 6;
+      });
+
+      return y + 5;
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const data = collectData();
+
+      let y = 15;
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.text("UNIVERSITY OF PERPETUAL HELP SYSTEM DALTA", 105, y, { align: "center" });
+      y += 8;
+
+      doc.setFontSize(12);
+      doc.text("GRADUATE SCHOOL", 105, y, { align: "center" });
+      y += 8;
+
+      doc.text("UPHSD RESEARCH CONCEPT PAPER", 105, y, { align: "center" });
+      y += 12;
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(11);
+      doc.text("Student Name: " + (data.studentName || ""), 15, y); y += 6;
+      doc.text("Student Number: " + (data.studentNumber || ""), 15, y); y += 6;
+      doc.text("Degree/Major: " + (data.degreeMajor || ""), 15, y); y += 10;
+
+      y = addTextToPDF(doc, "1. Proposed Title", data.titleText, y);
+      y = addTextToPDF(doc, "2. Introduction and Background", data.introText, y);
+      y = addTextToPDF(doc, "3. Statement of the Problem", data.problemText, y);
+      y = addTextToPDF(doc, "4. Objectives of the Study", data.objectivesText, y);
+      y = addTextToPDF(doc, "5. Scope and Delimitation", data.scopeText, y);
+      y = addTextToPDF(doc, "6. Capsule Review of Related Studies", data.rrlText, y);
+      y = addTextToPDF(doc, "7. Theoretical / Conceptual Framework", data.frameworkText, y);
+
+      let methodology = "";
+      if (data.researchDesign) {
+        methodology += "Research Design: " + data.researchDesign + "\n\n";
+      }
+      methodology += data.methodologyText;
+      y = addTextToPDF(doc, "8. Methodology", methodology, y);
+
+      y = addTextToPDF(doc, "9. Ethical and AI Considerations", data.ethicsText, y);
+      y = addTextToPDF(doc, "10. Expected Outputs and Contribution", data.outputText, y);
+
+      let references = [data.ref1, data.ref2, data.ref3, data.ref4, data.ref5]
+        .filter(ref => ref.trim() !== "")
+        .map((ref, index) => (index + 1) + ". " + ref)
+        .join("\n\n");
+
+      y = addTextToPDF(doc, "11. References", references, y);
+
+      let advisers =
+        "1. " + (data.adviser1 || "") + "\nReason: " + (data.adviserReason1 || "") +
+        "\n\n2. " + (data.adviser2 || "") + "\nReason: " + (data.adviserReason2 || "");
+
+      y = addTextToPDF(doc, "12. Preferred Research Adviser", advisers, y);
+
+      y = addTextToPDF(doc, "13. Student Declaration",
+        "I hereby affirm that this Research Concept Paper is my original work, prepared in compliance with institutional, ethical, and AI disclosure policies. All sources used are properly acknowledged, and any AI-assisted tools used in the development of this paper are transparently disclosed in the methodology and ethics sections.",
+        y
+      );
+
+      doc.save("UPHSD-Research-Capsule-Draft.pdf");
+    }
+
+    updateCounts();
+  </script>
+</body>
+</html>
